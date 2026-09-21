@@ -71,14 +71,19 @@ con Source = este repo de GitHub, cambiando solo el **Root Directory**.
   N8N_HOST=${{RAILWAY_PUBLIC_DOMAIN}}
   WEBHOOK_URL=https://${{RAILWAY_PUBLIC_DOMAIN}}/
   N8N_EDITOR_BASE_URL=https://${{RAILWAY_PUBLIC_DOMAIN}}
-  N8N_VERSION=stable
+  N8N_VERSION=2.39.10
   PORT=5678
   ```
   `PORT=5678` es obligatorio: Railway hace el healthcheck contra `PORT`, y n8n escucha en
   `N8N_PORT` (5678). Sin esto el deploy falla con "replicas never became healthy".
 
-  Cambia `N8N_VERSION` por una version fija (ej. la que usas hoy) para que un redeploy
-  no te actualice n8n sin querer. Para actualizar: cambias la variable y redeploy.
+  `N8N_VERSION` fija la version de n8n (si no existe la variable, el Dockerfile usa 2.39.10,
+  la version probada). Para actualizar n8n: cambias la variable y redeploy. Nunca uses `stable`/`latest`
+  en produccion: un redeploy te actualizaria n8n sin querer y las migraciones de base no tienen vuelta atras.
+
+Ajustes recomendados por servicio (Settings): **Watch Paths** `/n8n/**`, `/postgres/**`, `/redis/**`
+(un cambio en una carpeta no redespliega los otros servicios) y Restart Policy `On Failure`.
+Postgres y Redis **sin** dominio publico ni TCP proxy: solo red privada.
 
 Guardar -> **Deploy** para probarlo en un proyecto nuevo. Publicarlo en el marketplace es opcional.
 
