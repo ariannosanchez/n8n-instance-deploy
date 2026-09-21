@@ -72,7 +72,11 @@ con Source = este repo de GitHub, cambiando solo el **Root Directory**.
   WEBHOOK_URL=https://${{RAILWAY_PUBLIC_DOMAIN}}/
   N8N_EDITOR_BASE_URL=https://${{RAILWAY_PUBLIC_DOMAIN}}
   N8N_VERSION=stable
+  PORT=5678
   ```
+  `PORT=5678` es obligatorio: Railway hace el healthcheck contra `PORT`, y n8n escucha en
+  `N8N_PORT` (5678). Sin esto el deploy falla con "replicas never became healthy".
+
   Cambia `N8N_VERSION` por una version fija (ej. la que usas hoy) para que un redeploy
   no te actualice n8n sin querer. Para actualizar: cambias la variable y redeploy.
 
