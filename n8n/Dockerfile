@@ -1,7 +1,7 @@
 # n8n optimizado para bajo consumo de RAM en Railway.
 # Fija la version creando la variable N8N_VERSION en el servicio de Railway
-# (Railway la pasa como build arg). Ej: N8N_VERSION=1.110.1
-ARG N8N_VERSION=stable
+# (Railway la pasa como build arg). Si no existe, se usa la version probada de abajo.
+ARG N8N_VERSION=2.39.10
 FROM n8nio/n8n:${N8N_VERSION}
 
 # Los volumenes de Railway se montan como root: corremos como root y fijamos
