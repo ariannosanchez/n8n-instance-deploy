@@ -5,9 +5,9 @@ n8n se instala por npm con la version fijada en `package.json`).
 
 ## Pasos
 1. Plan **Standard** (4 GB) activo en https://squarecloud.app.
-2. Dashboard > **Databases** > Create Database > PostgreSQL 17, 512 MB. Anotar host, puerto,
+2. Dashboard > **Databases** > Create Database > PostgreSQL 17 de **1 GB** (es el minimo que permiten para Postgres). Anotar host, puerto,
    usuario, password y nombre de base.
-3. (Opcional, solo si el workflow usa nodos Redis) crear un Redis 7 de 256 MB; sus datos
+3. (Opcional, solo si el workflow usa nodos Redis) crear un Redis 7 de 512 MB (minimo para cache); sus datos
    van en la credencial Redis dentro de n8n, no en `.env`.
 4. `cp .env.example .env` y completar los `CAMBIAR` (DB + encryption key). El SUBDOMAIN
    de `squarecloud.app` debe coincidir con las URLs de `.env`.
