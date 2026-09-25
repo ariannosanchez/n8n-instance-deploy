@@ -87,6 +87,10 @@ Postgres y Redis **sin** dominio publico ni TCP proxy: solo red privada.
 
 Guardar -> **Deploy** para probarlo en un proyecto nuevo. Publicarlo en el marketplace es opcional.
 
+**Si cambias o regeneras el dominio publico de n8n despues del primer deploy, redespliega n8n.**
+El proceso toma `N8N_EDITOR_BASE_URL` al arrancar y, si no coincide con el dominio por el que entras,
+el editor muestra "Se ha perdido la conexion con el servidor" (rechaza la conexion en vivo `/rest/push`).
+
 ## 3. Credenciales dentro de n8n
 
 | Credencial | Host | Puerto | Password |
