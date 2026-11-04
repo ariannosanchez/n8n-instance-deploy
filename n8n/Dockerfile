@@ -17,6 +17,8 @@ ENV NODE_OPTIONS=--max-old-space-size=384
 ENV N8N_DEFAULT_BINARY_DATA_MODE=filesystem
 ENV DB_POSTGRESDB_POOL_SIZE=2
 ENV EXECUTIONS_MODE=regular
+# Heap del task runner (los Code nodes del bot son livianos).
+ENV N8N_RUNNERS_MAX_OLD_SPACE_SIZE=128
 
 # --- Ejecuciones: guardar poco y limpiar rapido (controla el tamano de Postgres) ---
 # Para depurar un workflow concreto: Settings del workflow -> Save successful executions = Yes
@@ -27,6 +29,11 @@ ENV EXECUTIONS_DATA_SAVE_MANUAL_EXECUTIONS=false
 ENV EXECUTIONS_DATA_PRUNE=true
 ENV EXECUTIONS_DATA_MAX_AGE=72
 ENV EXECUTIONS_DATA_PRUNE_MAX_COUNT=2000
+
+# --- Modulos de n8n 2.x que el bot no usa (menos RAM y menos trabajo de fondo) ---
+# Se mantienen: mcp (workflows expuestos por MCP) y data-table.
+ENV N8N_DISABLED_MODULES=insights,chat-hub,instance-ai,agents
+ENV N8N_COMMUNITY_PACKAGES_ENABLED=false
 
 # --- Sin telemetria ni llamadas de fondo ---
 ENV N8N_DIAGNOSTICS_ENABLED=false

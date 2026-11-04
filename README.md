@@ -37,6 +37,15 @@ git push -u origin main
 
 ## 2. Crear el template en Railway
 
+Checklist del template (version 2, nov-2026):
+- n8n con **un solo dominio publico** (puerto 5678). Si el editor del template muestra dos entradas de dominio, borra una.
+- **Resource Limits** por servicio (Settings): n8n **768 MB** de RAM, Postgres 256 MB, Redis 128 MB. Railway cobra la memoria
+  ocupada (incluida la cache de archivos del sistema); el limite la acota sin afectar a n8n, cuyo proceso real ronda 450 MB.
+  Si el template no guarda los limites, ponlos en cada proyecto despues del primer deploy.
+- **Watch Paths**: `/n8n/**`, `/postgres/**`, `/redis/**`.
+- Variables exactamente como se listan abajo (incluida `PORT=5678` y `N8N_VERSION` fija).
+- Lo demas (heap 384 MB, runner 128 MB, modulos desactivados, pruning, binarios a disco) ya viene en los Dockerfile.
+
 Workspace Settings -> **Templates** -> **New Template**. Agregar 3 servicios, los tres
 con Source = este repo de GitHub, cambiando solo el **Root Directory**.
 
