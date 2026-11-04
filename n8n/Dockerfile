@@ -43,7 +43,13 @@ ENV N8N_PERSONALIZATION_ENABLED=false
 
 # --- Base ---
 ENV DB_TYPE=postgresdb
+# Coinciden con postgres/Dockerfile; host y password llegan como variables de Railway.
+ENV DB_POSTGRESDB_DATABASE=n8n
+ENV DB_POSTGRESDB_USER=n8n
+ENV DB_POSTGRESDB_PORT=5432
 ENV N8N_PORT=5678
+# Railway usa PORT para el healthcheck y el dominio publico.
+ENV PORT=5678
 ENV N8N_PROTOCOL=https
 ENV N8N_PROXY_HOPS=1
 ENV GENERIC_TIMEZONE=America/Lima

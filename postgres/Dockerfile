@@ -4,6 +4,9 @@ FROM postgres:17-alpine
 # El volumen de Railway trae un lost+found en la raiz: los datos van en una subcarpeta.
 # Volumen montado en /var/lib/postgresql/data
 ENV PGDATA=/var/lib/postgresql/data/pgdata
+# Usuario y base por defecto (el password se define como variable en Railway).
+ENV POSTGRES_USER=n8n
+ENV POSTGRES_DB=n8n
 
 CMD ["postgres", \
      "-c", "shared_buffers=32MB", \
