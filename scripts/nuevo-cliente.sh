@@ -4,7 +4,7 @@
 #   Uso:  bash scripts/nuevo-cliente.sh "NOMBRE DEL CLIENTE" [CODIGO_TEMPLATE]
 #
 # Requiere: railway CLI con sesion iniciada (railway login) en la cuenta donde vive el template,
-#           node (para leer JSON). Se puede ejecutar desde cualquier carpeta.
+#           node (para leer JSON). Se puede ejecutar desde cualquier carpeta. Tarda ~4 min.
 set -euo pipefail
 
 NAME="${1:?Falta el nombre del proyecto}"
@@ -31,12 +31,16 @@ echo "3/4  Desplegando template..."
 VARS=$(TPL_CFG="$TPL_CFG" TPL_ID="$TPL_ID" PROJ="$PROJ" ENV="$ENV" node -e "const e=process.env;console.log(JSON.stringify({i:{templateId:e.TPL_ID,projectId:e.PROJ,environmentId:e.ENV,serializedConfig:JSON.parse(e.TPL_CFG)}}))")
 railway api 'mutation($i:TemplateDeployV2Input!){ templateDeployV2(input:$i) { projectId workflowId } }' --variables "$VARS" | j 'if(j.errors){console.error(JSON.stringify(j.errors));process.exit(1)}console.log("     ok")'
 
-echo "4/4  Aplicando limites de RAM/CPU..."
-SVCS=""
-for i in $(seq 1 30); do
-  SVCS=$(railway api "query { project(id:\"$PROJ\") { services { edges { node { id name } } } } }" | j 'console.log(j.data.project.services.edges.map(e=>e.node.name+"="+e.node.id).join(" "))')
-  [ "$(echo "$SVCS" | wc -w)" -ge 3 ] && break; sleep 5
+echo "4/4  Esperando el primer deploy (los limites puestos antes de que termine se pierden)..."
+for i in $(seq 1 60); do
+  ST=$(railway api "query { project(id:\"$PROJ\") { services { edges { node { name serviceInstances { edges { node { latestDeployment { status } } } } } } } } }" | j 'console.log(j.data.project.services.edges.map(e=>e.node.name+"="+(e.node.serviceInstances.edges[0]?.node.latestDeployment?.status||"PENDING")).join(" "))')
+  echo "     $ST"
+  if [ "$(echo "$ST" | wc -w)" -ge 3 ] && ! echo "$ST" | grep -qE "PENDING|BUILDING|DEPLOYING|INITIALIZING|QUEUED|WAITING"; then break; fi
+  sleep 10
 done
+
+echo "     Aplicando limites de RAM/CPU..."
+SVCS=$(railway api "query { project(id:\"$PROJ\") { services { edges { node { id name } } } } }" | j 'console.log(j.data.project.services.edges.map(e=>e.node.name+"="+e.node.id).join(" "))')
 for pair in $SVCS; do
   n="${pair%%=*}"; id="${pair##*=}"
   case "$n" in
@@ -45,7 +49,7 @@ for pair in $SVCS; do
     Redis)    mem=$MEM_REDIS; cpu=$CPU_REDIS ;;
     *) continue ;;
   esac
-  for t in $(seq 1 20); do   # justo tras el deploy la instancia puede tardar unos segundos en existir
+  for t in $(seq 1 10); do
     if railway api "mutation { serviceInstanceLimitsUpdate(input:{serviceId:\"$id\", environmentId:\"$ENV\", memoryGB:$mem, vCPUs:$cpu}) }" 2>/dev/null | grep -q '"serviceInstanceLimitsUpdate": *true'; then
       echo "     $n -> ${mem} GB / ${cpu} vCPU"; break
     fi
@@ -54,9 +58,7 @@ for pair in $SVCS; do
 done
 
 echo
-echo "Listo. Dominio de n8n (disponible cuando termine el primer deploy, ~3 min):"
-for i in $(seq 1 12); do
-  DOM=$(railway api "query { project(id:\"$PROJ\") { services { edges { node { name serviceInstances { edges { node { domains { serviceDomains { domain } } } } } } } } } }" | j 'const s=j.data.project.services.edges.find(e=>e.node.name==="n8n");const d=s&&s.node.serviceInstances.edges[0]?.node.domains.serviceDomains[0]?.domain;console.log(d||"")')
-  [ -n "$DOM" ] && { echo "  https://$DOM"; break; }; sleep 5
-done
-echo "Proyecto: https://railway.com/project/$PROJ"
+DOM=$(railway api "query { project(id:\"$PROJ\") { services { edges { node { name serviceInstances { edges { node { domains { serviceDomains { domain } } } } } } } } } }" | j 'const s=j.data.project.services.edges.find(e=>e.node.name==="n8n");const d=s&&s.node.serviceInstances.edges[0]?.node.domains.serviceDomains[0]?.domain;console.log(d||"")')
+echo "Listo."
+[ -n "$DOM" ] && echo "  n8n:      https://$DOM"
+echo "  proyecto: https://railway.com/project/$PROJ"
