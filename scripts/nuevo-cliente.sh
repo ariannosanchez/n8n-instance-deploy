@@ -58,7 +58,7 @@ for pair in $SVCS; do
 done
 
 echo
-DOM=$(railway api "query { project(id:\"$PROJ\") { services { edges { node { name serviceInstances { edges { node { domains { serviceDomains { domain } } } } } } } } } }" | j 'const s=j.data.project.services.edges.find(e=>e.node.name==="n8n");const d=s&&s.node.serviceInstances.edges[0]?.node.domains.serviceDomains[0]?.domain;console.log(d||"")')
+DOM=$(railway api "query { project(id:\"$PROJ\") { services { edges { node { name serviceInstances { edges { node { domains { serviceDomains { domain } } } } } } } } } }" | j 'const svc=j.data.project.services.edges.find(e=>e.node.name==="n8n");const d=svc&&svc.node.serviceInstances.edges[0]?.node.domains.serviceDomains[0]?.domain;console.log(d||"")')
 echo "Listo."
 [ -n "$DOM" ] && echo "  n8n:      https://$DOM"
 echo "  proyecto: https://railway.com/project/$PROJ"
