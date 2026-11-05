@@ -32,6 +32,7 @@ VARS=$(TPL_CFG="$TPL_CFG" TPL_ID="$TPL_ID" PROJ="$PROJ" ENV="$ENV" node -e "cons
 railway api 'mutation($i:TemplateDeployV2Input!){ templateDeployV2(input:$i) { projectId workflowId } }' --variables "$VARS" | j 'if(j.errors){console.error(JSON.stringify(j.errors));process.exit(1)}console.log("     ok")'
 
 echo "4/4  Aplicando limites de RAM/CPU..."
+SVCS=""
 for i in $(seq 1 30); do
   SVCS=$(railway api "query { project(id:\"$PROJ\") { services { edges { node { id name } } } } }" | j 'console.log(j.data.project.services.edges.map(e=>e.node.name+"="+e.node.id).join(" "))')
   [ "$(echo "$SVCS" | wc -w)" -ge 3 ] && break; sleep 5
@@ -44,12 +45,16 @@ for pair in $SVCS; do
     Redis)    mem=$MEM_REDIS; cpu=$CPU_REDIS ;;
     *) continue ;;
   esac
-  railway api "mutation { serviceInstanceLimitsUpdate(input:{serviceId:\"$id\", environmentId:\"$ENV\", memoryGB:$mem, vCPUs:$cpu}) }" >/dev/null
-  echo "     $n -> ${mem} GB / ${cpu} vCPU"
+  for t in $(seq 1 20); do   # justo tras el deploy la instancia puede tardar unos segundos en existir
+    if railway api "mutation { serviceInstanceLimitsUpdate(input:{serviceId:\"$id\", environmentId:\"$ENV\", memoryGB:$mem, vCPUs:$cpu}) }" 2>/dev/null | grep -q '"serviceInstanceLimitsUpdate": *true'; then
+      echo "     $n -> ${mem} GB / ${cpu} vCPU"; break
+    fi
+    sleep 5
+  done
 done
 
 echo
-echo "Listo. Dominio de n8n (estara disponible cuando termine el primer deploy, ~3 min):"
+echo "Listo. Dominio de n8n (disponible cuando termine el primer deploy, ~3 min):"
 for i in $(seq 1 12); do
   DOM=$(railway api "query { project(id:\"$PROJ\") { services { edges { node { name serviceInstances { edges { node { domains { serviceDomains { domain } } } } } } } } } }" | j 'const s=j.data.project.services.edges.find(e=>e.node.name==="n8n");const d=s&&s.node.serviceInstances.edges[0]?.node.domains.serviceDomains[0]?.domain;console.log(d||"")')
   [ -n "$DOM" ] && { echo "  https://$DOM"; break; }; sleep 5
