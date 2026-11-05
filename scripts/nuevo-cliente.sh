@@ -39,7 +39,9 @@ for i in $(seq 1 60); do
   sleep 10
 done
 
-echo "     Aplicando limites de RAM/CPU..."
+echo "     Aplicando limites de RAM/CPU (dos pasadas: Railway a veces descarta la primera)..."
+for pasada in 1 2; do
+[ $pasada = 2 ] && sleep 30
 SVCS=$(railway api "query { project(id:\"$PROJ\") { services { edges { node { id name } } } } }" | j 'console.log(j.data.project.services.edges.map(e=>e.node.name+"="+e.node.id).join(" "))')
 for pair in $SVCS; do
   n="${pair%%=*}"; id="${pair##*=}"
@@ -55,6 +57,7 @@ for pair in $SVCS; do
     fi
     sleep 5
   done
+done
 done
 
 echo
