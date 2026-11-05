@@ -100,6 +100,16 @@ Guardar -> **Deploy** para probarlo en un proyecto nuevo. Publicarlo en el marke
 El proceso toma `N8N_EDITOR_BASE_URL` al arrancar y, si no coincide con el dominio por el que entras,
 el editor muestra "Se ha perdido la conexion con el servidor" (rechaza la conexion en vivo `/rest/push`).
 
+## 2b. Crear un cliente por comando (template + limites en un paso)
+
+```bash
+bash scripts/nuevo-cliente.sh "NOMBRE DEL CLIENTE"
+```
+
+Crea el proyecto, despliega el template `n8n-lite-v2` y aplica los limites (n8n 768 MB / Postgres 256 MB /
+Redis 128 MB), que Railway no guarda en el template. Requiere `railway login` en la cuenta del template y `node`.
+El codigo del template se pasa como segundo argumento si es distinto de `Xz0V7U` (`railway templates list`).
+
 ## 3. Credenciales dentro de n8n
 
 | Credencial | Host | Puerto | Password |
